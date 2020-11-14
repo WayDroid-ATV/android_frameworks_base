@@ -2169,12 +2169,13 @@ static void SpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArray gids, 
     __android_log_close();
     AStatsSocket_close();
 
-    const char* se_info_ptr = se_info.has_value() ? se_info.value().c_str() : nullptr;
+    // Disabled for Waydroid
+    /*const char* se_info_ptr = se_info.has_value() ? se_info.value().c_str() : nullptr;
 
     if (selinux_android_setcontext(uid, is_system_server, se_info_ptr, nice_name_ptr) == -1) {
         fail_fn(CREATE_ERROR("selinux_android_setcontext(%d, %d, \"%s\", \"%s\") failed", uid,
                              is_system_server, se_info_ptr, nice_name_ptr));
-    }
+    }*/
 
     if ((runtime_flags & RuntimeFlags::AUDIT_OUTGOING_TRANSACTIONS) != 0) {
         android::ProcessState::self()->setIsOutgoingTransactionsAuditable(true);
@@ -2202,10 +2203,11 @@ static void SpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArray gids, 
         }
 
         // TODO(b/117874058): Remove hardcoded label here.
-        static const char* kSystemServerLabel = "u:r:system_server:s0";
+        // Disabled for Waydroid
+        /*static const char* kSystemServerLabel = "u:r:system_server:s0";
         if (selinux_android_setcon(kSystemServerLabel) != 0) {
             fail_fn(CREATE_ERROR("selinux_android_setcon(%s)", kSystemServerLabel));
-        }
+        }*/
     }
 
     if (is_child_zygote) {
@@ -2897,7 +2899,8 @@ static void com_android_internal_os_Zygote_nativeInitNativeState(JNIEnv* env, jc
   // the value before zygote forks.
   gIsSecurityEnforced = security_getenforce();
 
-  selinux_android_seapp_context_init();
+  // Disabled for Waydroid
+  /*selinux_android_seapp_context_init();*/
 
 #ifdef BUILD_EXECUTE_ONLY_MEMORY
   /*
