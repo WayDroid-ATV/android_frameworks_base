@@ -167,10 +167,11 @@ sp<system::suspend::internal::ISuspendControlServiceInternal> getSuspendControlI
 void enableAutoSuspend() {
     static bool enabled = false;
     if (!enabled) {
-        static sp<IBinder> autosuspendClientToken = new BBinder();
+        // Disabled for Waydroid
+        /*static sp<IBinder> autosuspendClientToken = new BBinder();
         sp<system::suspend::internal::ISuspendControlServiceInternal> suspendControl =
                 getSuspendControlInternal();
-        suspendControl->enableAutosuspend(autosuspendClientToken, &enabled);
+        suspendControl->enableAutosuspend(autosuspendClientToken, &enabled);*/
     }
 
     {
@@ -185,10 +186,11 @@ void enableAutoSuspend() {
 void disableAutoSuspend() {
     std::lock_guard<std::mutex> lock(gSuspendMutex);
     if (!gSuspendBlocker) {
-        std::shared_ptr<ISystemSuspend> suspendHal = getSuspendHal();
+        // Disabled for Waydroid
+        /*std::shared_ptr<ISystemSuspend> suspendHal = getSuspendHal();
         suspendHal->acquireWakeLock(WakeLockType::PARTIAL, "PowerManager.SuspendLockout",
                                     &gSuspendBlocker);
-        assert(gSuspendBlocker != nullptr);
+        assert(gSuspendBlocker != nullptr);*/
     }
 }
 
