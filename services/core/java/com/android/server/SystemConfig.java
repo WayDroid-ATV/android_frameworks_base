@@ -703,6 +703,8 @@ public class SystemConfig {
                 Environment.getVendorDirectory(), "etc", "sysconfig"), vendorPermissionFlag);
         readPermissions(parser, Environment.buildPath(
                 Environment.getVendorDirectory(), "etc", "permissions"), vendorPermissionFlag);
+        readPermissions(parser, Environment.buildPath(
+                Environment.getVendorDirectory(), "etc", "host-permissions"), vendorPermissionFlag);
 
         String vendorSkuProperty = SystemProperties.get(VENDOR_SKU_PROPERTY, "");
         if (!vendorSkuProperty.isEmpty()) {
