@@ -52,6 +52,7 @@ cc_defaults_for_libandroid_runtime {
         "-Wno-unused-parameter",
         "-Wunused",
         "-Wunreachable-code",
+        "-Wno-unused-function"
     ],
 
     cppflags: ["-Wno-conversion-null"],
