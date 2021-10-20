@@ -1940,6 +1940,7 @@ static void SpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArray gids, 
     // Isolate app data, jit profile and sandbox data directories by overlaying a tmpfs on those
     // dirs and bind mount all related packages separately.
     if (mount_data_dirs) {
+        /* Disabled in Waydroid
         // Sdk sandbox data isolation does not need to occur for app processes since sepolicy
         // prevents access to sandbox data anyway.
         appid_t appId = multiuser_get_app_id(uid);
@@ -1949,6 +1950,7 @@ static void SpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArray gids, 
         }
         isolateAppData(env, pkg_data_info_list, allowlisted_data_info_list, uid, process_name,
                        managed_nice_name, fail_fn);
+        */
         isolateJitProfile(env, pkg_data_info_list, uid, process_name, managed_nice_name, fail_fn);
     }
     // MOUNT_EXTERNAL_INSTALLER, MOUNT_EXTERNAL_PASS_THROUGH, MOUNT_EXTERNAL_ANDROID_WRITABLE apps
