@@ -1984,13 +1984,15 @@ static void SpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArray gids, 
     // If this zygote isn't root, it won't be able to create a process group,
     // since the directory is owned by root.
     if (getuid() == 0) {
-        const int rc = createProcessGroup(uid, getpid());
+        createProcessGroup(uid, getpid());
+#if 0
         if (rc != 0) {
             fail_fn(rc == -EROFS ? CREATE_ERROR("createProcessGroup failed, kernel missing "
                                                 "CONFIG_CGROUP_CPUACCT?")
                                  : CREATE_ERROR("createProcessGroup(%d, %d) failed: %s", uid,
                                                 /* pid= */ 0, strerror(-rc)));
         }
+#endif
 
         if (is_system_server) {
             // Not all devices mount memcgv1 so check if it is mounted first
