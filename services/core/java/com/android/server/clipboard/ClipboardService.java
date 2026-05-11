@@ -123,6 +123,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import lineageos.waydroid.WaydroidClipboard;
+
 /**
  * Implementation of the clipboard for copy and paste.
  * <p>
@@ -176,6 +178,7 @@ public class ClipboardService extends SystemService {
     private final IBinder mPermissionOwner;
     private final Consumer<ClipData> mClipboardMonitor;
     private final Handler mWorkerHandler;
+    private WaydroidClipboard mWaydroidClipboard;
 
     @GuardedBy("mLock")
     // Maps (userId, deviceId) to Clipboard.
@@ -245,6 +248,7 @@ public class ClipboardService extends SystemService {
         HandlerThread workerThread = new HandlerThread(TAG);
         workerThread.start();
         mWorkerHandler = workerThread.getThreadHandler();
+        mWaydroidClipboard = WaydroidClipboard.getInstance(context);
     }
 
     @Override
@@ -941,6 +945,11 @@ public class ClipboardService extends SystemService {
             clipboard = new Clipboard(userId, deviceId);
             mClipboards.add(userId, deviceId, clipboard);
         }
+        if (mWaydroidClipboard != null && mWaydroidClipboard.getService() != null) {
+            clipboard.primaryClip = new ClipData("host clipboard",
+                                                 new String[]{"text/plain"},
+                                                 new ClipData.Item(mWaydroidClipboard.getClipboardData()));
+        }
         return clipboard;
     }
 
@@ -1077,6 +1086,10 @@ public class ClipboardService extends SystemService {
             final ClipDescription description = clip.getDescription();
             if (description != null) {
                 description.setTimestamp(System.currentTimeMillis());
+            }
+            if (mWaydroidClipboard != null) {
+                ClipData.Item firstItem = clip.getItemAt(0);
+                mWaydroidClipboard.sendClipboardData(firstItem.getText().toString());
             }
         }
         sendClipChangedBroadcast(clipboard);
