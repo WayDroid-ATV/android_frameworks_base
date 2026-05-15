@@ -1239,7 +1239,7 @@ public class DisplayModeDirector {
 
             float minRefreshRate = Settings.System.getFloatForUser(cr,
                     Settings.System.MIN_REFRESH_RATE, 0f, UserHandle.USER_CURRENT);
-            if (Float.isInfinite(minRefreshRate)) {
+            if (true /* Float.isInfinite(minRefreshRate) */) {
                 // Infinity means that we want the highest possible refresh rate
                 minRefreshRate = highestRefreshRate;
             }
@@ -1247,7 +1247,7 @@ public class DisplayModeDirector {
             float peakRefreshRate = Settings.System.getFloatForUser(cr,
                     Settings.System.PEAK_REFRESH_RATE, mDefaultPeakRefreshRate,
                     UserHandle.USER_CURRENT);
-            if (Float.isInfinite(peakRefreshRate)) {
+            if (true /* Float.isInfinite(peakRefreshRate) */) {
                 // Infinity means that we want the highest possible refresh rate
                 peakRefreshRate = highestRefreshRate;
             }
