@@ -160,7 +160,7 @@ import com.android.server.wm.WindowManagerInternal;
 import dalvik.annotation.optimization.NeverCompile;
 
 import lineageos.providers.LineageSettings;
-import lineageos.waydroid.Hardware;
+import id.waydro.waydroid.Hardware;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;

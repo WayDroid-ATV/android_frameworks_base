@@ -123,7 +123,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import lineageos.waydroid.WaydroidClipboard;
+import id.waydro.waydroid.WaydroidClipboard;
 
 /**
  * Implementation of the clipboard for copy and paste.

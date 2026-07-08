@@ -339,6 +339,8 @@ import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
+import id.waydro.server.WaySystemServer;
+
 /**
  * Entry point to {@code system_server}.
  */
@@ -3124,6 +3126,10 @@ public final class SystemServer implements Dumpable {
                 | NoSuchMethodException e) {
             reportWtf("Making " + externalServer + " ready", e);
         }
+
+        t.traceBegin("startWaydroidServices");
+        WaySystemServer.startServices(context, mSystemServiceManager);
+        t.traceEnd();
 
         // It is now time to start up the app processes...
 
