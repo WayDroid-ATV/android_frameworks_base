@@ -276,6 +276,7 @@ java_library_static {
         "trust_token",
         "ambientcontext_flags_lib",
         "vendor.waydroid.window-V1.2-java",
+        "framework-waydroid.static",
     ],
     javac_shard_size: 50,
     javacflags: [
