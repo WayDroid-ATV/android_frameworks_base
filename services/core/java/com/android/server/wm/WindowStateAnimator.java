@@ -311,6 +311,10 @@ class WindowStateAnimator {
             final int format = isHwAccelerated ? PixelFormat.TRANSLUCENT : attrs.format;
 
             mTitle = attrs.getTitle().toString();
+            final Task task = mWin.getTask();
+            if (task != null) {
+                mTitle = String.format("TID:%d#", task.mTaskId) + mTitle;
+            }
             Trace.traceBegin(TRACE_TAG_WINDOW_MANAGER, "new SurfaceControl");
             mSurfaceControl = mWin.makeSurface()
                     .setParent(mWin.mSurfaceControl)

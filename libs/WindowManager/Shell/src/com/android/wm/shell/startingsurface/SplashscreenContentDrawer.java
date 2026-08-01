@@ -293,7 +293,8 @@ public class SplashscreenContentDrawer {
         params.token = appToken;
         params.packageName = activityInfo.packageName;
         params.privateFlags |= WindowManager.LayoutParams.SYSTEM_FLAG_SHOW_FOR_ALL_USERS;
-        params.setTitle("Splash Screen " + title);
+        // Keep "<pkg>/<component>" shape so the TID: layer name stays parseable by Waydroid.
+        params.setTitle(activityInfo.packageName + "/SplashScreen");
         return params;
     }
     /**

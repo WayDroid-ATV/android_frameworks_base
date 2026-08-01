@@ -455,12 +455,21 @@ public abstract class WindowDecoration<T extends View & TaskFocusStateConsumer>
         return (T) LayoutInflater.from(context).inflate(layoutResId, null);
     }
 
+    /** Layer name in the "TID:<task>#<pkg>/<component>" form Waydroid parses. */
+    private String tidLayerName(String component) {
+        if (mTaskInfo.baseActivity == null) {
+            return component + " of Task=" + mTaskInfo.taskId;
+        }
+        return "TID:" + mTaskInfo.taskId + "#" + mTaskInfo.baseActivity.getPackageName()
+                + "/" + component;
+    }
+
     private void updateDecorationContainerSurface(
             SurfaceControl.Transaction startT, RelayoutResult<T> outResult) {
         if (mDecorationContainerSurface == null) {
             final SurfaceControl.Builder builder = mSurfaceControlBuilderSupplier.get();
             mDecorationContainerSurface = builder
-                    .setName("Decor container of Task=" + mTaskInfo.taskId)
+                    .setName(tidLayerName("DecorContainer"))
                     .setContainerLayer()
                     .setParent(mTaskSurface)
                     .setCallsite("WindowDecoration.updateDecorationContainerSurface")
@@ -751,7 +760,7 @@ public abstract class WindowDecoration<T extends View & TaskFocusStateConsumer>
             int xPos, int yPos, int width, int height) {
         final SurfaceControl.Builder builder = mSurfaceControlBuilderSupplier.get();
         SurfaceControl windowSurfaceControl = builder
-                .setName(namePrefix + " of Task=" + mTaskInfo.taskId)
+                .setName(tidLayerName(namePrefix))
                 .setContainerLayer()
                 .setParent(mDecorationContainerSurface)
                 .setCallsite("WindowDecoration.addWindow")
