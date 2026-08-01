@@ -31,6 +31,7 @@ import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.content.Context;
 import android.content.res.CompatibilityInfo.Translator;
@@ -1537,8 +1538,16 @@ public class SurfaceView extends View implements ViewRootImpl.SurfaceChangedCall
                 final Transaction surfaceUpdateTransaction = new Transaction();
                 if (creating) {
                     updateOpaqueFlag();
-                    final String name = Integer.toHexString(System.identityHashCode(this))
-                            + " " + getName();
+                    // Waydroid parses "TID:<task>#<pkg>/<component>" from the layer name, so the
+                    // prefix must come first and the title must stay bare.
+                    final String name;
+                    if (getContext() instanceof Activity) {
+                        name = String.format("TID:%d#", ((Activity) getContext()).getTaskId())
+                                + viewRoot.getTitle().toString();
+                    } else {
+                        name = Integer.toHexString(System.identityHashCode(this))
+                                + " " + getName();
+                    }
                     createBlastSurfaceControls(viewRoot, name, surfaceUpdateTransaction);
                 } else if (mSurfaceControl == null) {
                     return;
@@ -1848,7 +1857,7 @@ public class SurfaceView extends View implements ViewRootImpl.SurfaceChangedCall
 
         if (mBackgroundControl == null) {
             mBackgroundControl = new SurfaceControl.Builder()
-                    .setName("Background for " + name)
+                    .setName(name + "$Background")
                     .setLocalOwnerView(this)
                     .setOpaque(true)
                     .setColorLayer()
