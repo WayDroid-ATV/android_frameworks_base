@@ -1947,8 +1947,8 @@ public final class SurfaceControl implements Parcelable {
 
     @Override
     public String toString() {
-        return "Surface(name=" + mNativeProperties.name + ")/@0x"
-                + Integer.toHexString(System.identityHashCode(this));
+        // Waydroid derives layer names from this, so keep it bare.
+        return mNativeProperties.name;
     }
 
     /**
