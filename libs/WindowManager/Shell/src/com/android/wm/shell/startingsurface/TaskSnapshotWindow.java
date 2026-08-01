@@ -62,7 +62,7 @@ import java.lang.ref.WeakReference;
  */
 public class TaskSnapshotWindow {
     private static final String TAG = StartingWindowController.TAG;
-    private static final String TITLE_FORMAT = "SnapshotStartingWindow for taskId=";
+    private static final String TITLE_FORMAT = "/SnapshotStartingWindow";
 
     private final Window mWindow;
     private final Runnable mClearWindowHandler;
@@ -94,9 +94,11 @@ public class TaskSnapshotWindow {
                 "create taskSnapshot surface for task: %d", taskId);
 
         final int format = snapshot.getHardwareBufferFormat();
+        // "<pkg>/<component>" shape, so the TID: layer name stays parseable by Waydroid.
+        final String title = (info.mainWindowLayoutParams != null
+                ? info.mainWindowLayoutParams.packageName : "") + TITLE_FORMAT;
         final WindowManager.LayoutParams layoutParams = SnapshotDrawerUtils.createLayoutParameters(
-                info, TITLE_FORMAT + taskId, TYPE_APPLICATION_STARTING,
-                format, appToken);
+                info, title, TYPE_APPLICATION_STARTING, format, appToken);
         if (layoutParams == null) {
             Slog.e(TAG, "TaskSnapshotWindow no layoutParams");
             return null;
