@@ -185,6 +185,10 @@ public class ClipboardService extends SystemService {
     private final Handler mWorkerHandler;
     private WaydroidClipboard mWaydroidClipboard;
 
+    // Last host clipboard text synced in either direction.
+    @GuardedBy("mLock")
+    private String mLastHostClip;
+
     @GuardedBy("mLock")
     // Maps (userId, deviceId) to Clipboard.
     private final SparseArrayMap<Integer, Clipboard> mClipboards = new SparseArrayMap<>();
@@ -953,12 +957,26 @@ public class ClipboardService extends SystemService {
             clipboard = new Clipboard(userId, deviceId);
             mClipboards.add(userId, deviceId, clipboard);
         }
-        if (mWaydroidClipboard != null && mWaydroidClipboard.getService() != null) {
-            clipboard.primaryClip = new ClipData("host clipboard",
-                                                 new String[]{"text/plain"},
-                                                 new ClipData.Item(mWaydroidClipboard.getClipboardData()));
-        }
+        adoptHostClipLocked(clipboard);
         return clipboard;
+    }
+
+    // Pull the host clipboard in only when it has new text; overwriting unconditionally
+    // would discard whatever an app just copied.
+    @GuardedBy("mLock")
+    private void adoptHostClipLocked(Clipboard clipboard) {
+        if (mWaydroidClipboard == null || mWaydroidClipboard.getService() == null) {
+            return;
+        }
+        String hostClip = mWaydroidClipboard.getClipboardData();
+        if (TextUtils.isEmpty(hostClip) || hostClip.equals(mLastHostClip)) {
+            return;
+        }
+        mLastHostClip = hostClip;
+        clipboard.primaryClip = new ClipData("host clipboard", new String[]{"text/plain"},
+                new ClipData.Item(hostClip));
+        clipboard.primaryClipUid = android.os.Process.SYSTEM_UID;
+        clipboard.mPrimaryClipPackage = null;
     }
 
     List<UserInfo> getRelatedProfiles(@UserIdInt int userId) {
@@ -1095,9 +1113,13 @@ public class ClipboardService extends SystemService {
             if (description != null) {
                 description.setTimestamp(System.currentTimeMillis());
             }
-            if (mWaydroidClipboard != null) {
-                ClipData.Item firstItem = clip.getItemAt(0);
-                mWaydroidClipboard.sendClipboardData(firstItem.getText().toString());
+            // A clip without text (a URI or intent) has nothing to push to the host.
+            if (mWaydroidClipboard != null && clip.getItemCount() > 0) {
+                CharSequence text = clip.getItemAt(0).getText();
+                if (text != null) {
+                    mLastHostClip = text.toString();
+                    mWaydroidClipboard.sendClipboardData(mLastHostClip);
+                }
             }
         }
         sendClipChangedBroadcast(clipboard);
