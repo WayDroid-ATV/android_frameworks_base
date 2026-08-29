@@ -25,6 +25,7 @@ import android.window.DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MO
 import com.android.internal.policy.DesktopModeCompatPolicy
 import com.android.wm.shell.bubbles.BubbleController
 import com.android.wm.shell.common.DisplayController
+import com.android.wm.shell.common.WaydroidMode
 import com.android.wm.shell.desktopmode.DesktopWallpaperActivity.Companion.isWallpaperTask
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper
 import com.android.wm.shell.shared.desktopmode.DesktopState
@@ -48,6 +49,9 @@ class AppHandleAndHeaderVisibilityHelper(
      * should show or not for this task.
      */
     fun shouldShowAppHandleOrHeader(taskInfo: ActivityManager.RunningTaskInfo): Boolean {
+        // The Waydroid host frames and decorates per-app windows itself, and the fullscreen handle
+        // is sized to the status bar, which is not shown in that mode either.
+        if (!WaydroidMode.isFullUi()) return false
 
         // If DisplayController doesn't have it tracked, it could be a private/managed display, so
         // return false if display is null

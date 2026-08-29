@@ -105,6 +105,7 @@ import com.android.wm.shell.common.MultiInstanceHelper;
 import com.android.wm.shell.common.ShellExecutor;
 import com.android.wm.shell.common.SyncTransactionQueue;
 import com.android.wm.shell.common.UserProfileContexts;
+import com.android.wm.shell.common.WaydroidMode;
 import com.android.wm.shell.compatui.CompatUIController;
 import com.android.wm.shell.compatui.api.CompatUIHandler;
 import com.android.wm.shell.compatui.impl.CompatUIRequests;
@@ -571,6 +572,25 @@ public class DesktopModeWindowDecorViewModel implements WindowDecorViewModel,
             return Unit.INSTANCE;
         });
         mLockTaskChangeListener.addListener(this);
+        WaydroidMode.addChangeCallback(mContext,
+                () -> mMainExecutor.execute(this::onWaydroidModeChanged));
+    }
+
+    /**
+     * Drops decorations that the host's current mode disallows. The opposite direction is picked up
+     * by the next task change, as only the creation path consults the mode.
+     */
+    private void onWaydroidModeChanged() {
+        final List<RunningTaskInfo> stale = new ArrayList<>();
+        forAllWindowDecorations(decoration -> {
+            final RunningTaskInfo taskInfo = decoration.getTaskInfo();
+            if (!shouldShowWindowDecor(taskInfo)) {
+                stale.add(taskInfo);
+            }
+        });
+        for (int i = 0; i < stale.size(); i++) {
+            destroyWindowDecoration(stale.get(i));
+        }
     }
 
     @Override

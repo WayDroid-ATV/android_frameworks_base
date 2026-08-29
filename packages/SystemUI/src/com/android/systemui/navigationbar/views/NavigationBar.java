@@ -165,6 +165,7 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.util.DeviceConfigProxy;
 import com.android.systemui.util.ViewController;
 import com.android.wm.shell.back.BackAnimation;
+import com.android.wm.shell.common.WaydroidMode;
 import com.android.wm.shell.pip.Pip;
 import com.android.wm.shell.shared.handles.RegionSamplingHelper;
 
@@ -818,6 +819,7 @@ public class NavigationBar extends ViewController<NavigationBarView> implements 
         mView.setBehavior(mBehavior);
         setNavBarMode(mNavBarMode);
         repositionNavigationBar(mCurrentRotation);
+        WaydroidMode.addChangeCallback(mContext, mWaydroidModeCallback);
         mView.setUpdateActiveTouchRegionsCallback(
                 () -> mLauncherProxyService.onActiveNavBarRegionChanges(
                         getButtonLocations(true /* inScreen */, true /* useNearestRegion */)));
@@ -870,6 +872,7 @@ public class NavigationBar extends ViewController<NavigationBarView> implements 
 
     @Override
     public void onViewDetached() {
+        WaydroidMode.removeChangeCallback(mWaydroidModeCallback);
         mView.setUpdateActiveTouchRegionsCallback(null);
         getBarTransitions().destroy();
         mLauncherProxyService.removeCallback(mLauncherProxyListener);
@@ -1767,6 +1770,14 @@ public class NavigationBar extends ViewController<NavigationBarView> implements 
         getBarTransitions().finishAnimations();
     }
 
+    // Method reference, not a lambda reading mHandler: that field is a blank final assigned in
+    // the constructor, which an initializer may not read.
+    private final Runnable mWaydroidModeCallback = this::onWaydroidModeChanged;
+
+    private void onWaydroidModeChanged() {
+        mHandler.post(() -> repositionNavigationBar(mCurrentRotation));
+    }
+
     private WindowManager.LayoutParams getBarLayoutParams(int rotation) {
         WindowManager.LayoutParams lp = getBarLayoutParamsForRotation(rotation);
         lp.paramsForRotation = new WindowManager.LayoutParams[4];
@@ -1816,6 +1827,18 @@ public class NavigationBar extends ViewController<NavigationBarView> implements 
                     break;
             }
         }
+        if (!WaydroidMode.isFullUi()) {
+            // A per-app host window is composed from one task's layers, so the bar never reaches
+            // it: claim nothing rather than leave a strip the app cannot use. Whichever dimension
+            // the bar occupies was set above; the other is MATCH_PARENT.
+            if (width != WindowManager.LayoutParams.MATCH_PARENT) {
+                width = 0;
+            }
+            if (height != WindowManager.LayoutParams.MATCH_PARENT) {
+                height = 0;
+            }
+            insetsHeight = 0;
+        }
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
                 width,
                 height,
@@ -1863,7 +1886,11 @@ public class NavigationBar extends ViewController<NavigationBarView> implements 
         final boolean handlingGesture = mEdgeBackGestureHandler.isHandlingGestures();
         final InsetsFrameProvider mandatoryGestureProvider = new InsetsFrameProvider(
                 mInsetsSourceOwner, 0, WindowInsets.Type.mandatorySystemGestures());
-        if (handlingGesture) {
+        /* The bottom region is the home swipe, which needs the navigation bar window that a
+         * per-app host window does not get. The left and right edges below are the back gesture,
+         * handled by EdgeBackGestureHandler's own display-wide input monitor, so they keep
+         * working there - the host frames the window, Android still owns back. */
+        if (handlingGesture && WaydroidMode.isFullUi()) {
             mandatoryGestureProvider.setInsetsSize(Insets.of(0, 0, 0, gestureHeight));
         }
         final int gestureInsetsLeft = handlingGesture
