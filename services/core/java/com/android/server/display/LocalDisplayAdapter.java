@@ -323,7 +323,20 @@ final class LocalDisplayAdapter extends DisplayAdapter {
                     getFeatureFlags().isSizeOverrideForExternalDisplaysEnabled() && !isInternal;
 
             mSfDisplayModes = Arrays.copyOf(displayModes, displayModes.length);
-            mActiveSfDisplayMode = getModeById(displayModes, activeSfDisplayModeId);
+            SurfaceControl.DisplayMode activeSfDisplayMode =
+                    getModeById(displayModes, activeSfDisplayModeId);
+            if (activeSfDisplayMode == null) {
+                // The active id SurfaceFlinger reports is not always one of the modes it
+                // reports alongside it. Every user of mActiveSfDisplayMode dereferences it,
+                // so keep the display on a real mode rather than crashing here.
+                Slog.w(TAG, "Active mode id " + activeSfDisplayModeId
+                        + " is not among the supported modes, using the first one");
+                if (displayModes.length == 0) {
+                    return false;
+                }
+                activeSfDisplayMode = displayModes[0];
+            }
+            mActiveSfDisplayMode = activeSfDisplayMode;
             mAppVsyncOffsetNanos = mActiveSfDisplayMode.appVsyncOffsetNanos;
             mPresentationDeadlineNanos = mActiveSfDisplayMode.presentationDeadlineNanos;
             SurfaceControl.DisplayMode preferredSfDisplayMode =
@@ -1285,7 +1298,18 @@ final class LocalDisplayAdapter extends DisplayAdapter {
                             || Arrays.equals(supportedRefreshRates, mSupportedRefreshRates))) {
                 return false;
             }
-            mActiveSfDisplayMode = getModeById(mSfDisplayModes, activeSfModeId);
+            SurfaceControl.DisplayMode activeSfDisplayMode =
+                    getModeById(mSfDisplayModes, activeSfModeId);
+            if (activeSfDisplayMode == null) {
+                // SurfaceFlinger re-mints mode ids when it reloads a display's modes, so an
+                // event can name an id our list does not have. mActiveSfDisplayMode is
+                // dereferenced unguarded elsewhere, and the reload's hotplug refreshes both
+                // the list and the active mode, so drop the event.
+                Slog.w(TAG, "Ignoring active mode change to unknown mode id "
+                        + activeSfModeId);
+                return false;
+            }
+            mActiveSfDisplayMode = activeSfDisplayMode;
             mActiveModeId = findMatchingModeIdLocked(activeSfModeId);
             if (mActiveModeId == INVALID_MODE_ID) {
                 Slog.w(TAG, "In unknown mode after setting allowed modes"
